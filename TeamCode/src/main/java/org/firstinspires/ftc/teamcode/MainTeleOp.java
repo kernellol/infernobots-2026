@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 //import org.firstinspires.ftc.teamcode.commandGroups.ShootOnTheMoveCommandGroup;
 import org.firstinspires.ftc.teamcode.commands.IntakeCommand;
+import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 @Configurable
@@ -36,10 +37,9 @@ public class MainTeleOp extends LinearOpMode {
 
         CommandScheduler.getInstance().reset();
         CommandScheduler.getInstance().registerSubsystem(
-                robotContext.driveSubsystem
-//                robotContext.odometrySubsystem,
-//                robotContext.shooterSubsystem,
-,                robotContext.intakeSubsystem
+                robotContext.driveSubsystem,
+                robotContext.shooterSubsystem,
+                robotContext.intakeSubsystem
         );
 
         // Set default command for driveSubsystem (runs whenever no other command requires driveSubsystem)
@@ -47,14 +47,18 @@ public class MainTeleOp extends LinearOpMode {
                 new RunCommand(
                         () -> robotContext.driveSubsystem.driveFieldCentric(
                                 Math.pow(gamepad1.left_stick_x, 3),
-                                Math.pow(gamepad1.left_stick_y, 3),
+                                Math.pow(-gamepad1.left_stick_y, 3),
                                 Math.pow(-gamepad1.right_stick_x, 3)
                         ),
                         robotContext.driveSubsystem
                 )
         );
 
-//        ShootOnTheMoveCommandGroup shootOnTheMoveCommandGroup = new ShootOnTheMoveCommandGroup(
+        // Bind ShootCommand to gamepad1 right trigger
+        new Trigger(() -> gamepad1.right_trigger > 0.2)
+                .whileActiveContinuous(new ShootCommand(robotContext.shooterSubsystem, 50.0, 10.0));
+
+        //        ShootOnTheMoveCommandGroup shootOnTheMoveCommandGroup = new ShootOnTheMoveCommandGroup(
 //                robotContext.shooterSubsystem,
 //                robotContext.driveSubsystem,
 //                robotContext.odometrySubsystem,
@@ -69,7 +73,7 @@ public class MainTeleOp extends LinearOpMode {
 //
         // Bind IntakeCommand to gamepad1 left trigger
         new Trigger(() -> gamepad1.left_trigger > 0.2)
-                .whileActiveContinuous(new IntakeCommand(robotContext.intakeSubsystem));
+                .whileActiveContinuous(new IntakeCommand(robotContext.intakeSubsystem, () -> 10));
 
         Pose startingPose = new Pose(0, 0, Math.PI / 2);
         robotContext.driveSubsystem.setStartingPose(startingPose);
